@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<!-- D:\$CPUBook\2014\visual6502-2014\Visual 6502 in JavaScript.html -->
+
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<title>Visual 6502 in JavaScript</title>
+
+<!-- <style type="text/css">@import "expert.css";</style> -->
+
+ <link rel="stylesheet" href="Visual%206502%20in%20JavaScript_files/expert.css">
+
+<!-- <script src="mike_expert-allinone.js"></script> -->
+
+<!--<script src="expert-allinone_debug.js"></script> -->
+
+  <script src="Visual%206502%20in%20JavaScript_files/segdefs.js">                  </script>
+  <script src="Visual%206502%20in%20JavaScript_files/transdefs.js">                </script>
+  <script src="Visual%206502%20in%20JavaScript_files/nodenames.js">                </script>
+  <script src="Visual%206502%20in%20JavaScript_files/wires.js">                    </script>
+  <script src="Visual%206502%20in%20JavaScript_files/expertWires.js">              </script>
+  <script src="Visual%206502%20in%20JavaScript_files/chipsim.js">                  </script>
+  <script src="Visual%206502%20in%20JavaScript_files/memtable.js">                 </script>
+  <script src="Visual%206502%20in%20JavaScript_files/macros.js">                   </script>
+  <script src="Visual%206502%20in%20JavaScript_files/testprogram.js">              </script>
+  <script src="Visual%206502%20in%20JavaScript_files/jquery-1.js"> </script>
+  <script src="Visual%206502%20in%20JavaScript_files/jquery.js">   </script>
+  <script src="Visual%206502%20in%20JavaScript_files/splitter.js">        </script>
+
+<script src="Visual%206502%20in%20JavaScript_files/mike2.js"></script>
+<script src="Visual%206502%20in%20JavaScript_files/plugins.js"></script>
+
+<script type="text/javascript" src="Visual%206502%20in%20JavaScript_files/raphael.js"></script>
+
+<script type="text/javascript">
+function handleOnload() {
+	/MSIE (\d+\.\d+);/.test(navigator.appVersion);
+	IEVersion=Number(RegExp.$1);
+	if((navigator.appName == 'Microsoft Internet Explorer') && (IEVersion<9)){
+		document.getElementById('browsertrouble').innerHTML=
+			'<p>Sorry, "+navigator.appName+" not supported - showing you a picture instead!</p>';
+		document.getElementById('frame').innerHTML='<a href="browsertrouble.html"><img src="images/jssim2.png" style="border:10px"></a>';
+	}else{
+		setTimeout(setup,200);
+		//mikeinit();
+	}
+};
+
+// initialise splitter (built on jquery)
+$().ready(function(){
+	$("#frame").splitter({
+		type: "v",
+		outline: true,
+		minLeft: 20,
+		sizeLeft: 810,
+		resizeToWidth: true,
+		anchorToWindow: true,
+	});
+	$("#rightcolumn").splitter({
+		type: "h",
+		outline: true,
+		sizeBottom: 180,
+		minTop: 100,
+	});
+});
+</script>
+
+<style type="text/css" charset="utf-8">/* See license.txt for terms of usage */
+/** reset styling **/
+.firebugResetStyles {
+    z-index: 2147483646 !important;
+    top: 0 !important;
+    left: 0 !important;
+    display: block !important;
+    border: 0 none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    outline: 0 !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    position: fixed !important;
+    transform: rotate(0deg) !important;
+    transform-origin: 50% 50% !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent none !important;
+    pointer-events: none !important;
+    white-space: normal !important;
+}
+
+.firebugBlockBackgroundColor {
+    background-color: transparent !important;
+}
+
+.firebugResetStyles:before, .firebugResetStyles:after {
+    content: "" !important;
+}
+/**actual styling to be modified by firebug theme**/
+.firebugCanvas {
+    display: none !important;
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+.firebugLayoutBox {
+    width: auto !important;
+    position: static !important;
+}
+
+.firebugLayoutBoxOffset {
+    opacity: 0.8 !important;
+    position: fixed !important;
+}
+
+.firebugLayoutLine {
+    opacity: 0.4 !important;
+    background-color: #000000 !important;
+}
+
+.firebugLayoutLineLeft, .firebugLayoutLineRight {
+    width: 1px !important;
+    height: 100% !important;
+}
+
+.firebugLayoutLineTop, .firebugLayoutLineBottom {
+    width: 100% !important;
+    height: 1px !important;
+}
+
+.firebugLayoutLineTop {
+    margin-top: -1px !important;
+    border-top: 1px solid #999999 !important;
+}
+
+.firebugLayoutLineRight {
+    border-right: 1px solid #999999 !important;
+}
+
+.firebugLayoutLineBottom {
+    border-bottom: 1px solid #999999 !important;
+}
+
+.firebugLayoutLineLeft {
+    margin-left: -1px !important;
+    border-left: 1px solid #999999 !important;
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+.firebugLayoutBoxParent {
+    border-top: 0 none !important;
+    border-right: 1px dashed #E00 !important;
+    border-bottom: 1px dashed #E00 !important;
+    border-left: 0 none !important;
+    position: fixed !important;
+    width: auto !important;
+}
+
+.firebugRuler{
+    position: absolute !important;
+}
+
+.firebugRulerH {
+    top: -15px !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 14px !important;
+    background: url("data:image/png,%89PNG%0D%0A%1A%0A%00%00%00%0DIHDR%00%00%13%88%00%00%00%0E%08%02%00%00%00L%25a%0A%00%00%00%04gAMA%00%00%D6%D8%D4OX2%00%00%00%19tEXtSoftware%00Adobe%20ImageReadyq%C9e%3C%00%00%04%F8IDATx%DA%EC%DD%D1n%E2%3A%00E%D1%80%F8%FF%EF%E2%AF2%95%D0D4%0E%C1%14%B0%8Fa-%E9%3E%CC%9C%87n%B9%81%A6W0%1C%A6i%9A%E7y%0As8%1CT%A9R%A5J%95*U%AAT%A9R%A5J%95*U%AAT%A9R%A5J%95*U%AAT%A9R%A5J%95*U%AAT%A9R%A5J%95*U%AAT%A9R%A5J%95*U%AAT%A9R%A5J%95*U%AATE9%FE%FCw%3E%9F%AF%2B%2F%BA%97%FDT%1D~K(%5C%9D%D5%EA%1B%5C%86%B5%A9%BDU%B5y%80%ED%AB*%03%FAV9%AB%E1%CEj%E7%82%EF%FB%18%BC%AEJ8%AB%FA'%D2%BEU9%D7U%ECc0%E1%A2r%5DynwVi%CFW%7F%BB%17%7Dy%EACU%CD%0E%F0%FA%3BX%FEbV%FEM%9B%2B%AD%BE%AA%E5%95v%AB%AA%E3E5%DCu%15rV9%07%B5%7F%B5w%FCm%BA%BE%AA%FBY%3D%14%F0%EE%C7%60%0EU%AAT%A9R%A5J%95*U%AAT%A9R%A5J%95*U%AAT%A9R%A5J%95*U%AAT%A9R%A5J%95*U%AAT%A9R%A5JU%88%D3%F5%1F%AE%DF%3B%1B%F2%3E%DAUCNa%F92%D02%AC%7Dm%F9%3A%D4%F2%8B6%AE*%BF%5C%C2Ym~9g5%D0Y%95%17%7C%C8c%B0%7C%18%26%9CU%CD%13i%F7%AA%90%B3Z%7D%95%B4%C7%60%E6E%B5%BC%05%B4%FBY%95U%9E%DB%FD%1C%FC%E0%9F%83%7F%BE%17%7DkjMU%E3%03%AC%7CWj%DF%83%9An%BCG%AE%F1%95%96yQ%0Dq%5Dy%00%3Et%B5'%FC6%5DS%95pV%95%01%81%FF'%07%00%00%00%00%00%00%00%00%00%F8x%C7%F0%BE%9COp%5D%C9%7C%AD%E7%E6%EBV%FB%1E%E0(%07%E5%AC%C6%3A%ABi%9C%8F%C6%0E9%AB%C0'%D2%8E%9F%F99%D0E%B5%99%14%F5%0D%CD%7F%24%C6%DEH%B8%E9rV%DFs%DB%D0%F7%00k%FE%1D%84%84%83J%B8%E3%BA%FB%EF%20%84%1C%D7%AD%B0%8E%D7U%C8Y%05%1E%D4t%EF%AD%95Q%BF8w%BF%E9%0A%BF%EB%03%00%00%00%00%00%00%00%00%00%B8vJ%8E%BB%F5%B1u%8Cx%80%E1o%5E%CA9%AB%CB%CB%8E%03%DF%1D%B7T%25%9C%D5(%EFJM8%AB%CC'%D2%B2*%A4s%E7c6%FB%3E%FA%A2%1E%80~%0E%3E%DA%10x%5D%95Uig%15u%15%ED%7C%14%B6%87%A1%3B%FCo8%A8%D8o%D3%ADO%01%EDx%83%1A~%1B%9FpP%A3%DC%C6'%9C%95gK%00%00%00%00%00%00%00%00%00%20%D9%C9%11%D0%C0%40%AF%3F%EE%EE%92%94%D6%16X%B5%BCMH%15%2F%BF%D4%A7%C87%F1%8E%F2%81%AE%AAvzr%DA2%ABV%17%7C%E63%83%E7I%DC%C6%0Bs%1B%EF6%1E%00%00%00%00%00%00%00%00%00%80cr%9CW%FF%7F%C6%01%0E%F1%CE%A5%84%B3%CA%BC%E0%CB%AA%84%CE%F9%BF)%EC%13%08WU%AE%AB%B1%AE%2BO%EC%8E%CBYe%FE%8CN%ABr%5Dy%60~%CFA%0D%F4%AE%D4%BE%C75%CA%EDVB%EA(%B7%F1%09g%E5%D9%12%00%00%00%00%00%00%00%00%00H%F6%EB%13S%E7y%5E%5E%FB%98%F0%22%D1%B2'%A7%F0%92%B1%BC%24z3%AC%7Dm%60%D5%92%B4%7CEUO%5E%F0%AA*%3BU%B9%AE%3E%A0j%94%07%A0%C7%A0%AB%FD%B5%3F%A0%F7%03T%3Dy%D7%F7%D6%D4%C0%AAU%D2%E6%DFt%3F%A8%CC%AA%F2%86%B9%D7%F5%1F%18%E6%01%F8%CC%D5%9E%F0%F3z%88%AA%90%EF%20%00%00%00%00%00%00%00%00%00%C0%A6%D3%EA%CFi%AFb%2C%7BB%0A%2B%C3%1A%D7%06V%D5%07%A8r%5D%3D%D9%A6%CAu%F5%25%CF%A2%99%97zNX%60%95%AB%5DUZ%D5%FBR%03%AB%1C%D4k%9F%3F%BB%5C%FF%81a%AE%AB'%7F%F3%EA%FE%F3z%94%AA%D8%DF%5B%01%00%00%00%00%00%00%00%00%00%8E%FB%F3%F2%B1%1B%8DWU%AAT%A9R%A5J%95*U%AAT%A9R%A5J%95*U%AAT%A9R%A5J%95*U%AAT%A9R%A5J%95*U%AAT%A9R%A5J%95*U%AAT%A9R%A5J%95*U%AAT%A9R%A5J%95*UiU%C7%BBe%E7%F3%B9%CB%AAJ%95*U%AAT%A9R%A5J%95*U%AAT%A9R%A5J%95*U%AAT%A9R%A5J%95*U%AAT%A9R%A5J%95*U%AAT%A9R%A5J%95*U%AAT%A9R%A5J%95*U%AAT%A9R%A5*%AAj%FD%C6%D4%5Eo%90%B5Z%ADV%AB%D5j%B5Z%ADV%AB%D5j%B5Z%ADV%AB%D5j%B5Z%ADV%AB%D5j%B5Z%ADV%AB%D5j%B5Z%ADV%AB%D5j%B5Z%ADV%AB%D5j%B5%86%AF%1B%9F%98%DA%EBm%BBV%AB%D5j%B5Z%ADV%AB%D5j%B5Z%ADV%AB%D5j%B5Z%ADV%AB%D5j%B5Z%ADV%AB%D5j%B5Z%ADV%AB%D5j%B5Z%ADV%AB%D5j%B5Z%AD%D6%E4%F58%01%00%00%00%00%00%00%00%00%00%00%00%00%00%40%85%7F%02%0C%008%C2%D0H%16j%8FX%00%00%00%00IEND%AEB%60%82") repeat-x !important;
+    border-top: 1px solid #BBBBBB !important;
+    border-right: 1px dashed #BBBBBB !important;
+    border-bottom: 1px solid #000000 !important;
+}
+
+.firebugRulerV {
+    top: 0 !important;
+    left: -15px !important;
+    width: 14px !important;
+    height: 100% !important;
+    background: url("data:image/png,%89PNG%0D%0A%1A%0A%00%00%00%0DIHDR%00%00%00%0E%00%00%13%88%08%02%00%00%00%0E%F5%CB%10%00%00%00%04gAMA%00%00%D6%D8%D4OX2%00%00%00%19tEXtSoftware%00Adobe%20ImageReadyq%C9e%3C%00%00%06~IDATx%DA%EC%DD%D1v%A20%14%40Qt%F1%FF%FF%E4%97%D9%07%3BT%19%92%DC%40(%90%EEy%9A5%CB%B6%E8%F6%9Ac%A4%CC0%84%FF%DC%9E%CF%E7%E3%F1%88%DE4%F8%5D%C7%9F%2F%BA%DD%5E%7FI%7D%F18%DDn%BA%C5%FB%DF%97%BFk%F2%10%FF%FD%B4%F2M%A7%FB%FD%FD%B3%22%07p%8F%3F%AE%E3%F4S%8A%8F%40%EEq%9D%BE8D%F0%0EY%A1Uq%B7%EA%1F%81%88V%E8X%3F%B4%CEy%B7h%D1%A2E%EBohU%FC%D9%AF2fO%8BBeD%BE%F7X%0C%97%A4%D6b7%2Ck%A5%12%E3%9B%60v%B7r%C7%1AI%8C%BD%2B%23r%00c0%B2v%9B%AD%CA%26%0C%1Ek%05A%FD%93%D0%2B%A1u%8B%16-%95q%5Ce%DCSO%8E%E4M%23%8B%F7%C2%FE%40%BB%BD%8C%FC%8A%B5V%EBu%40%F9%3B%A72%FA%AE%8C%D4%01%CC%B5%DA%13%9CB%AB%E2I%18%24%B0n%A9%0CZ*Ce%9C%A22%8E%D8NJ%1E%EB%FF%8F%AE%CAP%19*%C3%BAEKe%AC%D1%AAX%8C*%DEH%8F%C5W%A1e%AD%D4%B7%5C%5B%19%C5%DB%0D%EF%9F%19%1D%7B%5E%86%BD%0C%95%A12%AC%5B*%83%96%CAP%19%F62T%86%CAP%19*%83%96%CA%B8Xe%BC%FE)T%19%A1%17xg%7F%DA%CBP%19*%C3%BA%A52T%86%CAP%19%F62T%86%CA%B0n%A9%0CZ%1DV%C6%3D%F3%FCH%DE%B4%B8~%7F%5CZc%F1%D6%1F%AF%84%F9%0F6%E6%EBVt9%0E~%BEr%AF%23%B0%97%A12T%86%CAP%19%B4T%86%CA%B8Re%D8%CBP%19*%C3%BA%A52huX%19%AE%CA%E5%BC%0C%7B%19*CeX%B7h%A9%0C%95%E1%BC%0C%7B%19*CeX%B7T%06%AD%CB%5E%95%2B%BF.%8F%C5%97%D5%E4%7B%EE%82%D6%FB%CF-%9C%FD%B9%CF%3By%7B%19%F62T%86%CA%B0n%D1R%19*%A3%D3%CA%B0%97%A12T%86uKe%D0%EA%B02*%3F1%99%5DB%2B%A4%B5%F8%3A%7C%BA%2B%8Co%7D%5C%EDe%A8%0C%95a%DDR%19%B4T%C66%82fA%B2%ED%DA%9FC%FC%17GZ%06%C9%E1%B3%E5%2C%1A%9FoiB%EB%96%CA%A0%D5qe4%7B%7D%FD%85%F7%5B%ED_%E0s%07%F0k%951%ECr%0D%B5C%D7-g%D1%A8%0C%EB%96%CA%A0%A52T%C6)*%C3%5E%86%CAP%19%D6-%95A%EB*%95q%F8%BB%E3%F9%AB%F6%E21%ACZ%B7%22%B7%9B%3F%02%85%CB%A2%5B%B7%BA%5E%B7%9C%97%E1%BC%0C%EB%16-%95%A12z%AC%0C%BFc%A22T%86uKe%D0%EA%B02V%DD%AD%8A%2B%8CWhe%5E%AF%CF%F5%3B%26%CE%CBh%5C%19%CE%CB%B0%F3%A4%095%A1%CAP%19*Ce%A8%0C%3BO*Ce%A8%0C%95%A12%3A%AD%8C%0A%82%7B%F0v%1F%2FD%A9%5B%9F%EE%EA%26%AF%03%CA%DF9%7B%19*Ce%A8%0C%95%A12T%86%CA%B8Ze%D8%CBP%19*Ce%A8%0C%95%D1ae%EC%F7%89I%E1%B4%D7M%D7P%8BjU%5C%BB%3E%F2%20%D8%CBP%19*Ce%A8%0C%95%A12T%C6%D5*%C3%5E%86%CAP%19*Ce%B4O%07%7B%F0W%7Bw%1C%7C%1A%8C%B3%3B%D1%EE%AA%5C%D6-%EBV%83%80%5E%D0%CA%10%5CU%2BD%E07YU%86%CAP%19*%E3%9A%95%91%D9%A0%C8%AD%5B%EDv%9E%82%FFKOee%E4%8FUe%A8%0C%95%A12T%C6%1F%A9%8C%C8%3D%5B%A5%15%FD%14%22r%E7B%9F%17l%F8%BF%ED%EAf%2B%7F%CF%ECe%D8%CBP%19*Ce%A8%0C%95%E1%93~%7B%19%F62T%86%CAP%19*Ce%A8%0C%E7%13%DA%CBP%19*Ce%A8%0CZf%8B%16-Z%B4h%D1R%19f%8B%16-Z%B4h%D1R%19%B4%CC%16-Z%B4h%D1R%19%B4%CC%16-Z%B4h%D1%A2%A52%CC%16-Z%B4h%D1%A2%A52h%99-Z%B4h%D1%A2%A52h%99-Z%B4h%D1%A2EKe%98-Z%B4h%D1%A2EKe%D02%5B%B4h%D1%A2EKe%D02%5B%B4h%D1%A2E%8B%96%CA0%5B%B4h%D1%A2E%8B%96%CA%A0e%B6h%D1%A2E%8B%96%CA%A0e%B6h%D1%A2E%8B%16-%95a%B6h%D1%A2E%8B%16-%95A%CBl%D1%A2E%8B%16-%95A%CBl%D1%A2E%8B%16-Z*%C3l%D1%A2E%8B%16-Z*%83%96%D9%A2E%8B%16-Z*%83%96%D9%A2E%8B%16-Z%B4T%86%D9%A2E%8B%16-Z%B4T%06-%B3E%8B%16-Z%B4T%06-%B3E%8B%16-Z%B4h%A9%0C%B3E%8B%16-Z%B4h%A9%0CZf%8B%16-Z%B4h%A9%0CZf%8B%16-Z%B4h%D1R%19f%8B%16-Z%B4h%D1R%19%B4%CC%16-Z%B4h%D1R%19%B4%CC%16-Z%B4h%D1%A2%A52%CC%16-Z%B4h%D1%A2%A52h%99-Z%B4h%D1%A2%A52h%99-Z%B4h%D1%A2EKe%98-Z%B4h%D1%A2EKe%D02%5B%B4h%D1%A2EKe%D02%5B%B4h%D1%A2E%8B%96%CA0%5B%B4h%D1%A2E%8B%96%CA%A0e%B6h%D1%A2E%8B%96%CA%A0e%B6h%D1%A2E%8B%16-%95a%B6h%D1%A2E%8B%16-%95A%CBl%D1%A2E%8B%16-%95A%CBl%D1%A2E%8B%16-Z*%C3l%D1%A2E%8B%16-Z*%83%96%D9%A2E%8B%16-Z*%83%96%D9%A2E%8B%16-Z%B4T%86%D9%A2E%8B%16-Z%B4T%06-%B3E%8B%16-Z%B4T%06-%B3E%8B%16-Z%B4h%A9%0C%B3E%8B%16-Z%B4h%A9%0CZf%8B%16-Z%B4h%A9%0CZf%8B%16-Z%B4h%D1R%19f%8B%16-Z%B4h%D1R%19%B4%CC%16-Z%B4h%D1R%19%B4%CC%16-Z%B4h%D1%A2%A52%CC%16-Z%B4h%D1%A2%A52h%99-Z%B4h%D1%A2%A52h%99-Z%B4h%D1%A2EKe%98-Z%B4h%D1%A2EKe%D02%5B%B4h%D1%A2EKe%D02%5B%B4h%D1%A2E%8B%96%CA0%5B%B4h%D1%A2E%8B%96%CA%A0e%B6h%D1%A2E%8B%96%CA%A0e%B6h%D1%A2E%8B%16-%95a%B6h%D1%A2E%8B%16-%95A%CBl%D1%A2E%8B%16-%95A%CBl%D1%A2E%8B%16-Z*%C3l%D1%A2E%8B%16-Z*%83%96%D9%A2E%8B%16-Z*%83%96%D9%A2E%8B%16-Z%B4T%86%D9%A2E%8B%16-Z%B4T%06-%B3E%8B%16-Z%B4%AE%A4%F5%25%C0%00%DE%BF%5C'%0F%DA%B8q%00%00%00%00IEND%AEB%60%82") repeat-y !important;
+    border-left: 1px solid #BBBBBB !important;
+    border-right: 1px solid #000000 !important;
+    border-bottom: 1px dashed #BBBBBB !important;
+}
+
+.overflowRulerX > .firebugRulerV {
+    left: 0 !important;
+}
+
+.overflowRulerY > .firebugRulerH {
+    top: 0 !important;
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+.fbProxyElement {
+    position: fixed !important;
+    pointer-events: auto !important;
+}
+</style></head>
+
+<body onload="handleOnload();">
+<span id="plain">
+<a href="http://www.visual6502.org/faq.html">FAQ</a>&nbsp;
+<a href="http://blog.visual6502.org/">Blog</a>&nbsp;
+<a href="http://www.visual6502.org/links.html">Links</a>&nbsp;
+<a href="http://github.com/trebonian/visual6502">Source</a>&nbsp;
+<a href="http://www.6502asm.com/">6502asm assembler</a>&nbsp;
+<a href="http://www.e-tradition.net/bytes/6502/disassembler.html">e-tradition disassembler</a>&nbsp;
+</span>
+
+<div style="position: relative; height: 551px;" class="frame" id="frame">
+ <div style="position: absolute; z-index: 1; left: 0px; width: 771px; height: 551px;" class="leftcolumn" id="leftcolumn">
+
+  <div style="display: block;" id="chipsurround" tabindex="1">
+    <!-- mike -->
+    <div class="chip" id="chip">
+     <span style="display: none;" id="waiting">Please wait, graphics initialising...</span>
+      <canvas style="top: 0px; left: 100px; width: 600px; height: 600px;" height="2000" width="2000" class="chip" id="chipbg"></canvas>
+     <canvas style="top: 0px; left: 100px; width: 600px; height: 600px;" height="2000" width="2000" class="chip" id="overlay"></canvas>
+      <canvas style="top: 0px; left: 100px; width: 600px; height: 600px;" height="2000" width="2000" class="chip" id="hilite"></canvas>
+      <canvas style="visibility: hidden; top: 0px; left: 100px; width: 600px; height: 600px;" height="2000" width="2000" class="chip" id="hitbuffer"></canvas>
+   </div>
+ </div> <!-- chipsurround -->
+
+<div style="display: none;" class="nochip" id="nochip">
+  <form>
+  <input value="Show chip layout" onclick="updateChipLayoutVisibility(true)" type="button">
+  </form>
+</div>
+
+<div style="display: block;" id="layoutControlPanel">
+  Use 'z' or '&gt;' to zoom in, 'x' or '&lt;' to zoom out, click to probe signals and drag to pan.
+
+  <form id="updateShow"> Show:
+  <input checked="checked" name="1" id="updateShow1" onchange="updateShow(this.name,this.checked)" type="checkbox">(diffusion)
+  <input checked="checked" name="3" id="updateShow3" onchange="updateShow(this.name,this.checked)" type="checkbox">(grounded diffusion)
+  <input checked="checked" name="4" id="updateShow4" onchange="updateShow(this.name,this.checked)" type="checkbox">(powered diffusion)
+  <input checked="checked" name="5" id="updateShow5" onchange="updateShow(this.name,this.checked)" type="checkbox">(polysilicon)
+  <input checked="checked" name="0" id="updateShow0" onchange="updateShow(this.name,this.checked)" type="checkbox">(metal)
+  <input checked="checked" name="2" id="updateShow2" onchange="updateShow(this.name,this.checked)" type="checkbox">(protection)
+  </form>
+
+
+ <form action="javascript:hiliteNodeList();">
+<!--  <div class="mikeHdr1">All                 Favs</div> -->
+ <span class="mikeHdr1">All</span> <span class="mikeFav">Favs</span>
+
+<!--  <div class="mikeFav"> Favs</div> -->
+
+<div> <!-- mike 2014 -->
+  <input value="Find:" onclick="hiliteNodeList('inpBoxHighlightThese');" type="button">
+
+  <!-- mike -->
+  <input value="Add to Favs" onclick="mikeAddToList();" type="button">
+<!--  <input type="button" value="Add to Favs" onclick="mikeAddToFavs();" /> -->
+
+  <input id="inpBoxHighlightThese" name="HighlightThese" value="RESG" type="text">
+
+      <!-- mike -->
+  <select id="selMikeHighlightList" onchange="doMikeSelect1('selMikeHighlightList')">
+     <option value="##alucout">##alucout</option><option value="#(A+B)0">#(A+B)0</option><option value="#(A+B)1">#(A+B)1</option><option value="#(A+B)2">#(A+B)2</option><option value="#(A+B)3">#(A+B)3</option><option value="#(A+B)4">#(A+B)4</option><option value="#(A+B)5">#(A+B)5</option><option value="#(A+B)6">#(A+B)6</option><option value="#(A+B)7">#(A+B)7</option><option value="#(AxB)0">#(AxB)0</option><option value="#(AxB)1">#(AxB)1</option><option value="#(AxB)2">#(AxB)2</option><option value="#(AxB)3">#(AxB)3</option><option value="#(AxB)4">#(AxB)4</option><option value="#(AxB)5">#(AxB)5</option><option value="#(AxB)6">#(AxB)6</option><option value="#(AxB)7">#(AxB)7</option><option value="#(AxB1).C01">#(AxB1).C01</option><option value="#(AxB3).C23">#(AxB3).C23</option><option value="#(AxB5).C45">#(AxB5).C45</option><option value="#(AxB7).C67">#(AxB7).C67</option><option value="#(AxBxC)0">#(AxBxC)0</option><option value="#(AxBxC)1">#(AxBxC)1</option><option value="#(AxBxC)2">#(AxBxC)2</option><option value="#(AxBxC)3">#(AxBxC)3</option><option value="#(AxBxC)4">#(AxBxC)4</option><option value="#(AxBxC)5">#(AxBxC)5</option><option value="#(AxBxC)6">#(AxBxC)6</option><option value="#(AxBxC)7">#(AxBxC)7</option><option value="#A.B0">#A.B0</option><option value="#A.B1">#A.B1</option><option value="#A.B2">#A.B2</option><option value="#A.B3">#A.B3</option><option value="#A.B4">#A.B4</option><option value="#A.B5">#A.B5</option><option value="#A.B6">#A.B6</option><option value="#A.B7">#A.B7</option><option value="#ABH0">#ABH0</option><option value="#ABH1">#ABH1</option><option value="#ABH2">#ABH2</option><option value="#ABH3">#ABH3</option><option value="#ABH4">#ABH4</option><option value="#ABH5">#ABH5</option><option value="#ABH6">#ABH6</option><option value="#ABH7">#ABH7</option><option value="#ABL0">#ABL0</option><option value="#ABL1">#ABL1</option><option value="#ABL2">#ABL2</option><option value="#ABL3">#ABL3</option><option value="#ABL4">#ABL4</option><option value="#ABL5">#ABL5</option><option value="#ABL6">#ABL6</option><option value="#ABL7">#ABL7</option><option value="#C01">#C01</option><option value="#C12">#C12</option><option value="#C23">#C23</option><option value="#C34">#C34</option><option value="#C45">#C45</option><option value="#C56">#C56</option><option value="#C67">#C67</option><option value="#C78">#C78</option><option value="#DA-ADD1">#DA-ADD1</option><option value="#DA-ADD2">#DA-ADD2</option><option value="#DBE">#DBE</option><option value="#DBZ">#DBZ</option><option value="#IRQP">#IRQP</option><option value="#NMIG">#NMIG</option><option value="#NMIP">#NMIP</option><option value="#TWOCYCLE">#TWOCYCLE</option><option value="#TWOCYCLE.phi1">#TWOCYCLE.phi1</option><option value="#VEC">#VEC</option><option value="#WR">#WR</option><option value="#alucout">#alucout</option><option value="#aluresult0">#aluresult0</option><option value="#aluresult1">#aluresult1</option><option value="#aluresult2">#aluresult2</option><option value="#aluresult3">#aluresult3</option><option value="#aluresult4">#aluresult4</option><option value="#aluresult5">#aluresult5</option><option value="#aluresult6">#aluresult6</option><option value="#aluresult7">#aluresult7</option><option value="#notRdy0.delay">#notRdy0.delay</option><option value="#op-T3-branch">#op-T3-branch</option><option value="#op-branch-bit6">#op-branch-bit6</option><option value="#op-branch-bit7">#op-branch-bit7</option><option value="#op-branch-done">#op-branch-done</option><option value="#op-set-C">#op-set-C</option><option value="#op-store">#op-store</option><option value="#pchp0">#pchp0</option><option value="#pchp1">#pchp1</option><option value="#pchp2">#pchp2</option><option value="#pchp3">#pchp3</option><option value="#pchp4">#pchp4</option><option value="#pchp5">#pchp5</option><option value="#pchp6">#pchp6</option><option value="#pchp7">#pchp7</option><option value="#pclp0">#pclp0</option><option value="#pclp1">#pclp1</option><option value="#pclp2">#pclp2</option><option value="#pclp3">#pclp3</option><option value="#pclp4">#pclp4</option><option value="#pclp5">#pclp5</option><option value="#pclp6">#pclp6</option><option value="#pclp7">#pclp7</option><option value="(AxB)0.#C0in">(AxB)0.#C0in</option><option value="(AxB)0.~C0in">(AxB)0.~C0in</option><option value="(AxB)2.#C12">(AxB)2.#C12</option><option value="(AxB)2.~C12">(AxB)2.~C12</option><option value="(AxB)4.#C34">(AxB)4.#C34</option><option value="(AxB)4.~C34">(AxB)4.~C34</option><option value="(AxB)6.#C56">(AxB)6.#C56</option><option value="(AxB)6.~C56">(AxB)6.~C56</option><option value="0/ADL0">0/ADL0</option><option value="0/ADL1">0/ADL1</option><option value="0/ADL2">0/ADL2</option><option value="A+B0">A+B0</option><option value="A+B1">A+B1</option><option value="A+B2">A+B2</option><option value="A+B3">A+B3</option><option value="A+B4">A+B4</option><option value="A+B5">A+B5</option><option value="A+B6">A+B6</option><option value="A+B7">A+B7</option><option value="ADH/ABH">ADH/ABH</option><option value="ADL/ABL">ADL/ABL</option><option value="AxB1">AxB1</option><option value="AxB3">AxB3</option><option value="AxB5">AxB5</option><option value="AxB7">AxB7</option><option value="BRtaken">BRtaken</option><option value="C01">C01</option><option value="C12">C12</option><option value="C1x5Reset">C1x5Reset</option><option value="C23">C23</option><option value="C34">C34</option><option value="C45">C45</option><option value="C56">C56</option><option value="C67">C67</option><option value="C78">C78</option><option value="C78.phi2">C78.phi2</option><option value="D1x1">D1x1</option><option value="DA-AB2">DA-AB2</option><option value="DA-AxB2">DA-AxB2</option><option value="DA-C01">DA-C01</option><option value="DA-C45">DA-C45</option><option value="DBNeg">DBNeg</option><option value="DBZ">DBZ</option><option value="DC34">DC34</option><option value="DC78">DC78</option><option value="DC78.phi2">DC78.phi2</option><option value="H1x1">H1x1</option><option value="INTG">INTG</option><option value="IRQP">IRQP</option><option value="NMIL">NMIL</option><option value="NMIP">NMIP</option><option value="ONEBYTE">ONEBYTE</option><option value="PD-0xx0xx0x">PD-0xx0xx0x</option><option value="PD-1xx000x0">PD-1xx000x0</option><option value="PD-n-0xx0xx0x">PD-n-0xx0xx0x</option><option value="PD-xxx010x1">PD-xxx010x1</option><option value="PD-xxxx10x0">PD-xxxx10x0</option><option value="Pout0">Pout0</option><option value="Pout1">Pout1</option><option value="Pout2">Pout2</option><option value="Pout3">Pout3</option><option value="Pout4">Pout4</option><option value="Pout5">Pout5</option><option value="Pout6">Pout6</option><option value="Pout7">Pout7</option><option selected="selected" value="RESG">RESG</option><option value="RESP">RESP</option><option value="Reset0">Reset0</option><option value="RnWstretched">RnWstretched</option><option value="VEC0">VEC0</option><option value="VEC1">VEC1</option><option value="a0">a0</option><option value="a1">a1</option><option value="a2">a2</option><option value="a3">a3</option><option value="a4">a4</option><option value="a5">a5</option><option value="a6">a6</option><option value="a7">a7</option><option value="ab0">ab0</option><option value="ab1">ab1</option><option value="ab10">ab10</option><option value="ab11">ab11</option><option value="ab12">ab12</option><option value="ab13">ab13</option><option value="ab14">ab14</option><option value="ab15">ab15</option><option value="ab2">ab2</option><option value="ab3">ab3</option><option value="ab4">ab4</option><option value="ab5">ab5</option><option value="ab6">ab6</option><option value="ab7">ab7</option><option value="ab8">ab8</option><option value="ab9">ab9</option><option value="abh0">abh0</option><option value="abh1">abh1</option><option value="abh2">abh2</option><option value="abh3">abh3</option><option value="abh4">abh4</option><option value="abh5">abh5</option><option value="abh6">abh6</option><option value="abh7">abh7</option><option value="abl0">abl0</option><option value="abl1">abl1</option><option value="abl2">abl2</option><option value="abl3">abl3</option><option value="abl4">abl4</option><option value="abl5">abl5</option><option value="abl6">abl6</option><option value="abl7">abl7</option><option value="adh0">adh0</option><option value="adh1">adh1</option><option value="adh2">adh2</option><option value="adh3">adh3</option><option value="adh4">adh4</option><option value="adh5">adh5</option><option value="adh6">adh6</option><option value="adh7">adh7</option><option value="adl0">adl0</option><option value="adl1">adl1</option><option value="adl2">adl2</option><option value="adl3">adl3</option><option value="adl4">adl4</option><option value="adl5">adl5</option><option value="adl6">adl6</option><option value="adl7">adl7</option><option value="alu0">alu0</option><option value="alu1">alu1</option><option value="alu2">alu2</option><option value="alu3">alu3</option><option value="alu4">alu4</option><option value="alu5">alu5</option><option value="alu6">alu6</option><option value="alu7">alu7</option><option value="alua0">alua0</option><option value="alua1">alua1</option><option value="alua2">alua2</option><option value="alua3">alua3</option><option value="alua4">alua4</option><option value="alua5">alua5</option><option value="alua6">alua6</option><option value="alua7">alua7</option><option value="alub0">alub0</option><option value="alub1">alub1</option><option value="alub2">alub2</option><option value="alub3">alub3</option><option value="alub4">alub4</option><option value="alub5">alub5</option><option value="alub6">alub6</option><option value="alub7">alub7</option><option value="alucin">alucin</option><option value="alucout">alucout</option><option value="alurawcout">alurawcout</option><option value="aluvout">aluvout</option><option value="branch-back">branch-back</option><option value="branch-back.phi1">branch-back.phi1</option><option value="branch-forward.phi1">branch-forward.phi1</option><option value="brk-done">brk-done</option><option value="cclk">cclk</option><option value="clearIR">clearIR</option><option value="clk0">clk0</option><option value="clk1out">clk1out</option><option value="clk2out">clk2out</option><option value="clock1">clock1</option><option value="clock2">clock2</option><option value="cp1">cp1</option><option value="dasb0">dasb0</option><option value="dasb1">dasb1</option><option value="dasb2">dasb2</option><option value="dasb3">dasb3</option><option value="dasb4">dasb4</option><option value="dasb5">dasb5</option><option value="dasb6">dasb6</option><option value="dasb7">dasb7</option><option value="db0">db0</option><option value="db1">db1</option><option value="db2">db2</option><option value="db3">db3</option><option value="db4">db4</option><option value="db5">db5</option><option value="db6">db6</option><option value="db7">db7</option><option value="dor0">dor0</option><option value="dor1">dor1</option><option value="dor2">dor2</option><option value="dor3">dor3</option><option value="dor4">dor4</option><option value="dor5">dor5</option><option value="dor6">dor6</option><option value="dor7">dor7</option><option value="dpc0_YSB">dpc0_YSB</option><option value="dpc10_ADLADD">dpc10_ADLADD</option><option value="dpc11_SBADD">dpc11_SBADD</option><option value="dpc12_0ADD">dpc12_0ADD</option><option value="dpc13_ORS">dpc13_ORS</option><option value="dpc14_SRS">dpc14_SRS</option><option value="dpc15_ANDS">dpc15_ANDS</option><option value="dpc16_EORS">dpc16_EORS</option><option value="dpc17_SUMS">dpc17_SUMS</option><option value="dpc18_#DAA">dpc18_#DAA</option><option value="dpc18_~DAA">dpc18_~DAA</option><option value="dpc19_ADDSB7">dpc19_ADDSB7</option><option value="dpc1_SBY">dpc1_SBY</option><option value="dpc20_ADDSB06">dpc20_ADDSB06</option><option value="dpc21_ADDADL">dpc21_ADDADL</option><option value="dpc22_#DSA">dpc22_#DSA</option><option value="dpc22_~DSA">dpc22_~DSA</option><option value="dpc23_SBAC">dpc23_SBAC</option><option value="dpc24_ACSB">dpc24_ACSB</option><option value="dpc25_SBDB">dpc25_SBDB</option><option value="dpc26_ACDB">dpc26_ACDB</option><option value="dpc27_SBADH">dpc27_SBADH</option><option value="dpc28_0ADH0">dpc28_0ADH0</option><option value="dpc29_0ADH17">dpc29_0ADH17</option><option value="dpc2_XSB">dpc2_XSB</option><option value="dpc30_ADHPCH">dpc30_ADHPCH</option><option value="dpc31_PCHPCH">dpc31_PCHPCH</option><option value="dpc32_PCHADH">dpc32_PCHADH</option><option value="dpc33_PCHDB">dpc33_PCHDB</option><option value="dpc34_PCLC">dpc34_PCLC</option><option value="dpc35_PCHC">dpc35_PCHC</option><option value="dpc36_#IPC">dpc36_#IPC</option><option value="dpc36_~IPC">dpc36_~IPC</option><option value="dpc37_PCLDB">dpc37_PCLDB</option><option value="dpc38_PCLADL">dpc38_PCLADL</option><option value="dpc39_PCLPCL">dpc39_PCLPCL</option><option value="dpc3_SBX">dpc3_SBX</option><option value="dpc40_ADLPCL">dpc40_ADLPCL</option><option value="dpc41_DL/ADL">dpc41_DL/ADL</option><option value="dpc42_DL/ADH">dpc42_DL/ADH</option><option value="dpc43_DL/DB">dpc43_DL/DB</option><option value="dpc4_SSB">dpc4_SSB</option><option value="dpc5_SADL">dpc5_SADL</option><option value="dpc6_SBS">dpc6_SBS</option><option value="dpc7_SS">dpc7_SS</option><option value="dpc8_nDBADD">dpc8_nDBADD</option><option value="dpc9_DBADD">dpc9_DBADD</option><option value="fetch">fetch</option><option value="idb0">idb0</option><option value="idb1">idb1</option><option value="idb2">idb2</option><option value="idb3">idb3</option><option value="idb4">idb4</option><option value="idb5">idb5</option><option value="idb6">idb6</option><option value="idb7">idb7</option><option value="idl0">idl0</option><option value="idl1">idl1</option><option value="idl2">idl2</option><option value="idl3">idl3</option><option value="idl4">idl4</option><option value="idl5">idl5</option><option value="idl6">idl6</option><option value="idl7">idl7</option><option value="ir0">ir0</option><option value="ir1">ir1</option><option value="ir2">ir2</option><option value="ir3">ir3</option><option value="ir4">ir4</option><option value="ir5">ir5</option><option value="ir6">ir6</option><option value="ir7">ir7</option><option value="irline3">irline3</option><option value="irq">irq</option><option value="nmi">nmi</option><option value="nnT2BR">nnT2BR</option><option value="notRdy0">notRdy0</option><option value="notRdy0.delay">notRdy0.delay</option><option value="notRdy0.phi1">notRdy0.phi1</option><option value="notRnWprepad">notRnWprepad</option><option value="notalu0">notalu0</option><option value="notalu1">notalu1</option><option value="notalu2">notalu2</option><option value="notalu3">notalu3</option><option value="notalu4">notalu4</option><option value="notalu5">notalu5</option><option value="notalu6">notalu6</option><option value="notalu7">notalu7</option><option value="notalucin">notalucin</option><option value="notalucout">notalucout</option><option value="notaluvout">notaluvout</option><option value="notdor0">notdor0</option><option value="notdor1">notdor1</option><option value="notdor2">notdor2</option><option value="notdor3">notdor3</option><option value="notdor4">notdor4</option><option value="notdor5">notdor5</option><option value="notdor6">notdor6</option><option value="notdor7">notdor7</option><option value="notidl0">notidl0</option><option value="notidl1">notidl1</option><option value="notidl2">notidl2</option><option value="notidl3">notidl3</option><option value="notidl4">notidl4</option><option value="notidl5">notidl5</option><option value="notidl6">notidl6</option><option value="notidl7">notidl7</option><option value="notir0">notir0</option><option value="notir1">notir1</option><option value="notir2">notir2</option><option value="notir3">notir3</option><option value="notir4">notir4</option><option value="notir5">notir5</option><option value="notir6">notir6</option><option value="notir7">notir7</option><option value="nots0">nots0</option><option value="nots1">nots1</option><option value="nots2">nots2</option><option value="nots3">nots3</option><option value="nots4">nots4</option><option value="nots5">nots5</option><option value="nots6">nots6</option><option value="nots7">nots7</option><option value="notx0">notx0</option><option value="notx1">notx1</option><option value="notx2">notx2</option><option value="notx3">notx3</option><option value="notx4">notx4</option><option value="notx5">notx5</option><option value="notx6">notx6</option><option value="notx7">notx7</option><option value="noty0">noty0</option><option value="noty1">noty1</option><option value="noty2">noty2</option><option value="noty3">noty3</option><option value="noty4">noty4</option><option value="noty5">noty5</option><option value="noty6">noty6</option><option value="noty7">noty7</option><option value="op-ANDS">op-ANDS</option><option value="op-EORS">op-EORS</option><option value="op-ORS">op-ORS</option><option value="op-SRS">op-SRS</option><option value="op-SUMS">op-SUMS</option><option value="op-T+-adc/sbc">op-T+-adc/sbc</option><option value="op-T+-asl/rol-a">op-T+-asl/rol-a</option><option value="op-T+-bit">op-T+-bit</option><option value="op-T+-cmp">op-T+-cmp</option><option value="op-T+-cpx/cpy-abs">op-T+-cpx/cpy-abs</option><option value="op-T+-cpx/cpy-imm/zp">op-T+-cpx/cpy-imm/zp</option><option value="op-T+-dex">op-T+-dex</option><option value="op-T+-inx">op-T+-inx</option><option value="op-T+-iny/dey">op-T+-iny/dey</option><option value="op-T+-ora/and/eor/adc">op-T+-ora/and/eor/adc</option><option value="op-T+-shift-a">op-T+-shift-a</option><option value="op-T0">op-T0</option><option value="op-T0-acc">op-T0-acc</option><option value="op-T0-adc/sbc">op-T0-adc/sbc</option><option value="op-T0-and">op-T0-and</option><option value="op-T0-bit">op-T0-bit</option><option value="op-T0-brk/rti">op-T0-brk/rti</option><option value="op-T0-clc/sec">op-T0-clc/sec</option><option value="op-T0-cld/sed">op-T0-cld/sed</option><option value="op-T0-cli/sei">op-T0-cli/sei</option><option value="op-T0-cmp">op-T0-cmp</option><option value="op-T0-cpx/cpy/inx/iny">op-T0-cpx/cpy/inx/iny</option><option value="op-T0-cpx/inx">op-T0-cpx/inx</option><option value="op-T0-cpy/iny">op-T0-cpy/iny</option><option value="op-T0-dex">op-T0-dex</option><option value="op-T0-eor">op-T0-eor</option><option value="op-T0-iny/dey">op-T0-iny/dey</option><option value="op-T0-jmp">op-T0-jmp</option><option value="op-T0-jsr">op-T0-jsr</option><option value="op-T0-lda">op-T0-lda</option><option value="op-T0-ldx/tax/tsx">op-T0-ldx/tax/tsx</option><option value="op-T0-ldy-mem">op-T0-ldy-mem</option><option value="op-T0-ora">op-T0-ora</option><option value="op-T0-php/pha">op-T0-php/pha</option><option value="op-T0-pla">op-T0-pla</option><option value="op-T0-plp">op-T0-plp</option><option value="op-T0-sbc">op-T0-sbc</option><option value="op-T0-shift-a">op-T0-shift-a</option><option value="op-T0-shift-right-a">op-T0-shift-right-a</option><option value="op-T0-tax">op-T0-tax</option><option value="op-T0-tay">op-T0-tay</option><option value="op-T0-tay/ldy-not-idx">op-T0-tay/ldy-not-idx</option><option value="op-T0-tsx">op-T0-tsx</option><option value="op-T0-txa">op-T0-txa</option><option value="op-T0-txs">op-T0-txs</option><option value="op-T0-tya">op-T0-tya</option><option value="op-T2">op-T2</option><option value="op-T2-ADL/ADD">op-T2-ADL/ADD</option><option value="op-T2-abs">op-T2-abs</option><option value="op-T2-abs-access">op-T2-abs-access</option><option value="op-T2-abs-y">op-T2-abs-y</option><option value="op-T2-branch">op-T2-branch</option><option value="op-T2-brk">op-T2-brk</option><option value="op-T2-idx-x-xy">op-T2-idx-x-xy</option><option value="op-T2-ind">op-T2-ind</option><option value="op-T2-ind-x">op-T2-ind-x</option><option value="op-T2-ind-y">op-T2-ind-y</option><option value="op-T2-jmp-abs">op-T2-jmp-abs</option><option value="op-T2-jsr">op-T2-jsr</option><option value="op-T2-mem-zp">op-T2-mem-zp</option><option value="op-T2-pha">op-T2-pha</option><option value="op-T2-php">op-T2-php</option><option value="op-T2-php/pha">op-T2-php/pha</option><option value="op-T2-stack">op-T2-stack</option><option value="op-T2-stack-access">op-T2-stack-access</option><option value="op-T2-zp/zp-idx">op-T2-zp/zp-idx</option><option value="op-T3">op-T3</option><option value="op-T3-abs-idx">op-T3-abs-idx</option><option value="op-T3-abs/idx/ind">op-T3-abs/idx/ind</option><option value="op-T3-branch">op-T3-branch</option><option value="op-T3-ind-x">op-T3-ind-x</option><option value="op-T3-ind-y">op-T3-ind-y</option><option value="op-T3-jmp">op-T3-jmp</option><option value="op-T3-jsr">op-T3-jsr</option><option value="op-T3-mem-abs">op-T3-mem-abs</option><option value="op-T3-mem-zp-idx">op-T3-mem-zp-idx</option><option value="op-T3-plp/pla">op-T3-plp/pla</option><option value="op-T3-stack/bit/jmp">op-T3-stack/bit/jmp</option><option value="op-T4">op-T4</option><option value="op-T4-abs-idx">op-T4-abs-idx</option><option value="op-T4-brk">op-T4-brk</option><option value="op-T4-brk/jsr">op-T4-brk/jsr</option><option value="op-T4-ind-x">op-T4-ind-x</option><option value="op-T4-ind-y">op-T4-ind-y</option><option value="op-T4-jmp">op-T4-jmp</option><option value="op-T4-mem-abs-idx">op-T4-mem-abs-idx</option><option value="op-T4-rti">op-T4-rti</option><option value="op-T4-rts">op-T4-rts</option><option value="op-T5-brk">op-T5-brk</option><option value="op-T5-ind-x">op-T5-ind-x</option><option value="op-T5-ind-y">op-T5-ind-y</option><option value="op-T5-jsr">op-T5-jsr</option><option value="op-T5-mem-ind-idx">op-T5-mem-ind-idx</option><option value="op-T5-rti">op-T5-rti</option><option value="op-T5-rti/rts">op-T5-rti/rts</option><option value="op-T5-rts">op-T5-rts</option><option value="op-asl/rol">op-asl/rol</option><option value="op-branch-done">op-branch-done</option><option value="op-brk/rti">op-brk/rti</option><option value="op-clv">op-clv</option><option value="op-from-x">op-from-x</option><option value="op-implied">op-implied</option><option value="op-inc/nop">op-inc/nop</option><option value="op-jmp">op-jmp</option><option value="op-jsr">op-jsr</option><option value="op-lsr/ror/dec/inc">op-lsr/ror/dec/inc</option><option value="op-plp/pla">op-plp/pla</option><option value="op-push/pull">op-push/pull</option><option value="op-rmw">op-rmw</option><option value="op-rol/ror">op-rol/ror</option><option value="op-ror">op-ror</option><option value="op-rti/rts">op-rti/rts</option><option value="op-shift">op-shift</option><option value="op-shift-right">op-shift-right</option><option value="op-sta/cmp">op-sta/cmp</option><option value="op-store">op-store</option><option value="op-sty/cpy-mem">op-sty/cpy-mem</option><option value="op-xy">op-xy</option><option value="p0">p0</option><option value="p1">p1</option><option value="p2">p2</option><option value="p3">p3</option><option value="p4">p4</option><option value="p5">p5</option><option value="p6">p6</option><option value="p7">p7</option><option value="pch0">pch0</option><option value="pch1">pch1</option><option value="pch2">pch2</option><option value="pch3">pch3</option><option value="pch4">pch4</option><option value="pch5">pch5</option><option value="pch6">pch6</option><option value="pch7">pch7</option><option value="pchp0">pchp0</option><option value="pchp1">pchp1</option><option value="pchp2">pchp2</option><option value="pchp3">pchp3</option><option value="pchp4">pchp4</option><option value="pchp5">pchp5</option><option value="pchp6">pchp6</option><option value="pchp7">pchp7</option><option value="pcl0">pcl0</option><option value="pcl1">pcl1</option><option value="pcl2">pcl2</option><option value="pcl3">pcl3</option><option value="pcl4">pcl4</option><option value="pcl5">pcl5</option><option value="pcl6">pcl6</option><option value="pcl7">pcl7</option><option value="pclp0">pclp0</option><option value="pclp1">pclp1</option><option value="pclp2">pclp2</option><option value="pclp3">pclp3</option><option value="pclp4">pclp4</option><option value="pclp5">pclp5</option><option value="pclp6">pclp6</option><option value="pclp7">pclp7</option><option value="pd0">pd0</option><option value="pd0.clearIR">pd0.clearIR</option><option value="pd1">pd1</option><option value="pd1.clearIR">pd1.clearIR</option><option value="pd2">pd2</option><option value="pd2.clearIR">pd2.clearIR</option><option value="pd3">pd3</option><option value="pd3.clearIR">pd3.clearIR</option><option value="pd4">pd4</option><option value="pd4.clearIR">pd4.clearIR</option><option value="pd5">pd5</option><option value="pd5.clearIR">pd5.clearIR</option><option value="pd6">pd6</option><option value="pd6.clearIR">pd6.clearIR</option><option value="pd7">pd7</option><option value="pd7.clearIR">pd7.clearIR</option><option value="pipe#T0">pipe#T0</option><option value="pipe#VEC">pipe#VEC</option><option value="pipe#WR.phi2">pipe#WR.phi2</option><option value="pipeIPCrelated">pipeIPCrelated</option><option value="pipeT-SYNC">pipeT-SYNC</option><option value="pipeT2out">pipeT2out</option><option value="pipeT3out">pipeT3out</option><option value="pipeT4out">pipeT4out</option><option value="pipeT5out">pipeT5out</option><option value="pipeUNK01">pipeUNK01</option><option value="pipeUNK02">pipeUNK02</option><option value="pipeUNK03">pipeUNK03</option><option value="pipeUNK04">pipeUNK04</option><option value="pipeUNK05">pipeUNK05</option><option value="pipeUNK06">pipeUNK06</option><option value="pipeUNK07">pipeUNK07</option><option value="pipeUNK08">pipeUNK08</option><option value="pipeUNK09">pipeUNK09</option><option value="pipeUNK10">pipeUNK10</option><option value="pipeUNK11">pipeUNK11</option><option value="pipeUNK12">pipeUNK12</option><option value="pipeUNK13">pipeUNK13</option><option value="pipeUNK14">pipeUNK14</option><option value="pipeUNK15">pipeUNK15</option><option value="pipeUNK16">pipeUNK16</option><option value="pipeUNK17">pipeUNK17</option><option value="pipeUNK18">pipeUNK18</option><option value="pipeUNK19">pipeUNK19</option><option value="pipeUNK20">pipeUNK20</option><option value="pipeUNK21">pipeUNK21</option><option value="pipeUNK22">pipeUNK22</option><option value="pipeUNK23">pipeUNK23</option><option value="pipeUNK26">pipeUNK26</option><option value="pipeUNK27">pipeUNK27</option><option value="pipeUNK28">pipeUNK28</option><option value="pipeUNK29">pipeUNK29</option><option value="pipeUNK30">pipeUNK30</option><option value="pipeUNK31">pipeUNK31</option><option value="pipeUNK32">pipeUNK32</option><option value="pipeUNK33">pipeUNK33</option><option value="pipeUNK34">pipeUNK34</option><option value="pipeUNK35">pipeUNK35</option><option value="pipeUNK36">pipeUNK36</option><option value="pipeUNK37">pipeUNK37</option><option value="pipeUNK39">pipeUNK39</option><option value="pipeUNK40">pipeUNK40</option><option value="pipeUNK41">pipeUNK41</option><option value="pipeUNK42">pipeUNK42</option><option value="pipeVectorA0">pipeVectorA0</option><option value="pipeVectorA1">pipeVectorA1</option><option value="pipeVectorA2">pipeVectorA2</option><option value="pipedpc28">pipedpc28</option><option value="pipephi2Reset0">pipephi2Reset0</option><option value="pipephi2Reset0x">pipephi2Reset0x</option><option value="pipe~T0">pipe~T0</option><option value="pipe~VEC">pipe~VEC</option><option value="pipe~WR.phi2">pipe~WR.phi2</option><option value="rdy">rdy</option><option value="res">res</option><option value="rw">rw</option><option value="s0">s0</option><option value="s1">s1</option><option value="s2">s2</option><option value="s3">s3</option><option value="s4">s4</option><option value="s5">s5</option><option value="s6">s6</option><option value="s7">s7</option><option value="sb0">sb0</option><option value="sb1">sb1</option><option value="sb2">sb2</option><option value="sb3">sb3</option><option value="sb4">sb4</option><option value="sb5">sb5</option><option value="sb6">sb6</option><option value="sb7">sb7</option><option value="short-circuit-branch-add">short-circuit-branch-add</option><option value="short-circuit-idx-add">short-circuit-idx-add</option><option value="so">so</option><option value="sync">sync</option><option value="t2">t2</option><option value="t3">t3</option><option value="t4">t4</option><option value="t5">t5</option><option value="vcc">vcc</option><option value="vss">vss</option><option value="x-op-T+-adc/sbc">x-op-T+-adc/sbc</option><option value="x-op-T0-bit">x-op-T0-bit</option><option value="x-op-T0-txa">x-op-T0-txa</option><option value="x-op-T0-tya">x-op-T0-tya</option><option value="x-op-T3-abs-idx">x-op-T3-abs-idx</option><option value="x-op-T3-ind-y">x-op-T3-ind-y</option><option value="x-op-T3-plp/pla">x-op-T3-plp/pla</option><option value="x-op-T4-ind-y">x-op-T4-ind-y</option><option value="x-op-T4-rti">x-op-T4-rti</option><option value="x-op-jmp">x-op-jmp</option><option value="x-op-push/pull">x-op-push/pull</option><option value="x0">x0</option><option value="x1">x1</option><option value="x2">x2</option><option value="x3">x3</option><option value="x4">x4</option><option value="x5">x5</option><option value="x6">x6</option><option value="x7">x7</option><option value="xx-op-T5-jsr">xx-op-T5-jsr</option><option value="y0">y0</option><option value="y1">y1</option><option value="y2">y2</option><option value="y3">y3</option><option value="y4">y4</option><option value="y5">y5</option><option value="y6">y6</option><option value="y7">y7</option><option value="~(A+B)0">~(A+B)0</option><option value="~(A+B)1">~(A+B)1</option><option value="~(A+B)2">~(A+B)2</option><option value="~(A+B)3">~(A+B)3</option><option value="~(A+B)4">~(A+B)4</option><option value="~(A+B)5">~(A+B)5</option><option value="~(A+B)6">~(A+B)6</option><option value="~(A+B)7">~(A+B)7</option><option value="~(AxB)0">~(AxB)0</option><option value="~(AxB)1">~(AxB)1</option><option value="~(AxB)2">~(AxB)2</option><option value="~(AxB)3">~(AxB)3</option><option value="~(AxB)4">~(AxB)4</option><option value="~(AxB)5">~(AxB)5</option><option value="~(AxB)6">~(AxB)6</option><option value="~(AxB)7">~(AxB)7</option><option value="~(AxB1).C01">~(AxB1).C01</option><option value="~(AxB3).C23">~(AxB3).C23</option><option value="~(AxB5).C45">~(AxB5).C45</option><option value="~(AxB7).C67">~(AxB7).C67</option><option value="~(AxBxC)0">~(AxBxC)0</option><option value="~(AxBxC)1">~(AxBxC)1</option><option value="~(AxBxC)2">~(AxBxC)2</option><option value="~(AxBxC)3">~(AxBxC)3</option><option value="~(AxBxC)4">~(AxBxC)4</option><option value="~(AxBxC)5">~(AxBxC)5</option><option value="~(AxBxC)6">~(AxBxC)6</option><option value="~(AxBxC)7">~(AxBxC)7</option><option value="~A.B0">~A.B0</option><option value="~A.B1">~A.B1</option><option value="~A.B2">~A.B2</option><option value="~A.B3">~A.B3</option><option value="~A.B4">~A.B4</option><option value="~A.B5">~A.B5</option><option value="~A.B6">~A.B6</option><option value="~A.B7">~A.B7</option><option value="~ABH0">~ABH0</option><option value="~ABH1">~ABH1</option><option value="~ABH2">~ABH2</option><option value="~ABH3">~ABH3</option><option value="~ABH4">~ABH4</option><option value="~ABH5">~ABH5</option><option value="~ABH6">~ABH6</option><option value="~ABH7">~ABH7</option><option value="~ABL0">~ABL0</option><option value="~ABL1">~ABL1</option><option value="~ABL2">~ABL2</option><option value="~ABL3">~ABL3</option><option value="~ABL4">~ABL4</option><option value="~ABL5">~ABL5</option><option value="~ABL6">~ABL6</option><option value="~ABL7">~ABL7</option><option value="~C01">~C01</option><option value="~C12">~C12</option><option value="~C23">~C23</option><option value="~C34">~C34</option><option value="~C45">~C45</option><option value="~C56">~C56</option><option value="~C67">~C67</option><option value="~C78">~C78</option><option value="~DA-ADD1">~DA-ADD1</option><option value="~DA-ADD2">~DA-ADD2</option><option value="~DBE">~DBE</option><option value="~DBZ">~DBZ</option><option value="~IRQP">~IRQP</option><option value="~NMIG">~NMIG</option><option value="~NMIP">~NMIP</option><option value="~TWOCYCLE">~TWOCYCLE</option><option value="~TWOCYCLE.phi1">~TWOCYCLE.phi1</option><option value="~VEC">~VEC</option><option value="~WR">~WR</option><option value="~alucout">~alucout</option><option value="~aluresult0">~aluresult0</option><option value="~aluresult1">~aluresult1</option><option value="~aluresult2">~aluresult2</option><option value="~aluresult3">~aluresult3</option><option value="~aluresult4">~aluresult4</option><option value="~aluresult5">~aluresult5</option><option value="~aluresult6">~aluresult6</option><option value="~aluresult7">~aluresult7</option><option value="~notRdy0.delay">~notRdy0.delay</option><option value="~op-T3-branch">~op-T3-branch</option><option value="~op-branch-bit6">~op-branch-bit6</option><option value="~op-branch-bit7">~op-branch-bit7</option><option value="~op-branch-done">~op-branch-done</option><option value="~op-set-C">~op-set-C</option><option value="~op-store">~op-store</option><option value="~pchp0">~pchp0</option><option value="~pchp1">~pchp1</option><option value="~pchp2">~pchp2</option><option value="~pchp3">~pchp3</option><option value="~pchp4">~pchp4</option><option value="~pchp5">~pchp5</option><option value="~pchp6">~pchp6</option><option value="~pchp7">~pchp7</option><option value="~pclp0">~pclp0</option><option value="~pclp1">~pclp1</option><option value="~pclp2">~pclp2</option><option value="~pclp3">~pclp3</option><option value="~pclp4">~pclp4</option><option value="~pclp5">~pclp5</option><option value="~pclp6">~pclp6</option><option value="~pclp7">~pclp7</option><option value="~~alucout">~~alucout</option><option value="  ">blank</option>
+  </select>
+
+<!--  <select id="selMikeFavs" onchange="doMikeSelectFavs()"> -->
+  <select id="selMikeFavs" onchange="doMikeSelect1('selMikeFavs')">
+     <option value="res">res</option><option value="  " selected="selected">blank</option>
+  </select>
+
+  <span id="mikeOptions2">
+<!--     <input type="button" id="mikeButFindFav" value="Find Fav" onclick="mikeFindFav('')" /> -->
+    <input id="mikeButLastZoom" value="Last Zoom" onclick="mikeLastZoom()" type="button">
+    <input id="mikebutresetZoom" value="Reset Zoom" onclick="mikeresetZoom()" type="button">
+  </span>
+
+   <div id="mikeSortButtons">
+    <input checked="checked" name="zoomOnFind" id="zoomOnFindid" onchange="mikeSetNoZoomOnFind(this)" type="checkbox">(No Zoom:Find)
+    <input name="sortAlpha" id="sortbyAlph" class="mikeSortButtons" onchange="mikeAlphaSort()" type="checkbox">(Sort by Alpha)
+    <input name="sortSyms" id="sortBySyms" class="mikeSortButtons" onchange="mikeSymSort()" type="checkbox">(Sort by Symbols)
+    <input checked="checked" name="appendOrOverWrite" id="appendOrOverWriteId" class="mikeSortButtons" onchange="mikeSetNodeListAppendOrReplace(this)" type="checkbox">(OverWrite/Append)
+   </div>
+
+<!-- </form> -->
+<!--  <form> -->
+  <!-- mike -->
+
+  <input value="Clear Highlighting" onclick="clearHighlight();" type="button">
+  <span class="animatebox">
+    Animate during simulation:
+    <input checked="checked" id="animateModeCheckbox" onchange="updateChipLayoutAnimation(this.checked)" type="checkbox"></span>
+
+  <input value="Hide Chip Layout" onclick="updateChipLayoutVisibility(false)" type="button">
+  <a href="file:///D:/$CPUBook/Visual6502/Visual6502_github/me/visual6502/expert13.html?nosim=t&amp;find=res&amp;panx=235.9&amp;pany=29.7&amp;zoom=1.0" id="linkHere">Link to this location</a>
+
+  <input value="Raphael Box" onclick="mikeRaphaelBox1()" type="button">
+  <input value="Black Box" onclick="mikeBlackBox1()" type="button">
+  <input value="Clear Box" onclick="mikeEraseBlackBox1()" type="button">
+
+  <input value="Show Boxes" onclick="mikeShowBoxes()" type="button">
+</div> <!-- mike 2014 -->
+ </form>
+
+</div>
+</div><div unselectable="on" class="vsplitbar" style="z-index: 100; position: absolute; -moz-user-select: none; cursor: e-resize; left: 771px; height: 551px;"><a title="vsplitbar" tabindex="0" accesskey="" href="javascript:void(0)"></a></div> <!-- closing leftcolumn -->
+<div style="position: relative; z-index: 1; left: 777px; width: 461px; height: 551px;" class="rightcolumn" id="rightcolumn">
+<div style="position: absolute; z-index: 1; top: 0px; height: 103px; width: 469px;" id="righttopdiv">
+<div class="buttons">
+  <div class="twobuttons">
+    <a style="visibility: hidden;" href="javascript:stopChip()" id="stop"><img class="navstop" src="Visual%206502%20in%20JavaScript_files/stop.png" title="stop"></a>
+    <a style="visibility: visible;" href="javascript:runChip()" id="start"><img class="navplay" src="Visual%206502%20in%20JavaScript_files/play.png" title="run"></a>
+  </div>
+  <div class="morebuttons">
+    <a href="javascript:resetChip()"><img class="navbutton" src="Visual%206502%20in%20JavaScript_files/up.png" title="reset"></a>
+    <a href="javascript:stepBack()"><img class="navbutton" src="Visual%206502%20in%20JavaScript_files/prev.png" title="back"></a>
+    <a href="javascript:stepForward()"><img class="navbutton" src="Visual%206502%20in%20JavaScript_files/next.png" title="forward"></a>
+    <a href="javascript:goUntilSyncOrWrite()"><img class="navbutton" src="Visual%206502%20in%20JavaScript_files/singlestep.png" title="step"></a>
+    <a href="javascript:goFor()"><img class="navbutton" src="Visual%206502%20in%20JavaScript_files/fastforward.png" title="fastforward"></a>
+  </div>
+  <div style="float:right;">
+    <a href="http://visual6502.org/wiki/index.php?title=JssimUserHelp" target="_blank">User Guide</a>
+    &nbsp;
+  </div>
+</div>  <!-- buttons -->
+<div class="status" id="status"> halfcyc:6 phi0:0 AB:0003 D:12 RnW:1<br> PC:0003 A:00 X:00 Y:00 SP:fd nv&#8209;BdIZc<br>Hz: 0.4 Exec: LDA&nbsp;Abs(T2)<br></div> <!-- status -->
+
+   <div id="memtablediv">
+	<table class="memtable" id="memtable" tabindex="2"><tr><td>0000:</td><td style="background: none repeat scroll 0% 0% rgb(255, 255, 255);">a9</td><td style="background: none repeat scroll 0% 0% rgb(255, 255, 255);">00</td><td style="background: none repeat scroll 0% 0% rgb(255, 255, 255);">ad</td><td style="background: none repeat scroll 0% 0% rgb(255, 255, 136);">12</td><td>34</td><td style="background: none repeat scroll 0% 0% rgb(255, 255, 255);">a9</td><td style="background: none repeat scroll 0% 0% rgb(255, 255, 255);">01</td><td>a9</td><td>02</td><td>a9</td><td>03</td><td>a9</td><td>04</td><td>a9</td><td>05</td><td>a9</td></tr><tr><td>0010:</td><td>06</td><td>a9</td><td>07</td><td>a9</td><td>08</td><td>a9</td><td>09</td><td>a9</td><td>0a</td><td>a9</td><td>0b</td><td>a9</td><td>0c</td><td>a9</td><td>0d</td><td>a9</td></tr><tr><td>0020:</td><td>0e</td><td>a9</td><td>0f</td><td>a9</td><td>10</td><td>a9</td><td>20</td><td>a9</td><td>21</td><td>a9</td><td>22</td><td>a9</td><td>23</td><td>a9</td><td>24</td><td>a9</td></tr><tr><td>0030:</td><td>25</td><td>a9</td><td>26</td><td>a9</td><td>27</td><td>a9</td><td>28</td><td>a9</td><td>29</td><td>a9</td><td>2a</td><td>a9</td><td>2b</td><td>a9</td><td>2c</td><td>a9</td></tr><tr><td>0040:</td><td>2d</td><td>a9</td><td>2e</td><td>a9</td><td>2f</td><td>a9</td><td>30</td><td>a9</td><td>31</td><td>a9</td><td>32</td><td>a9</td><td>33</td><td>a9</td><td>34</td><td>a9</td></tr><tr><td>0050:</td><td>35</td><td>a9</td><td>36</td><td>a9</td><td>37</td><td>a9</td><td>38</td><td>a9</td><td>39</td><td>a9</td><td>3a</td><td>a9</td><td>3b</td><td>a9</td><td>3c</td><td>a9</td></tr><tr><td>0060:</td><td>3d</td><td>a9</td><td>3e</td><td>a9</td><td>3f</td><td>a9</td><td>40</td><td>a9</td><td>41</td><td>a9</td><td>42</td><td>a9</td><td>43</td><td>a9</td><td>44</td><td>a9</td></tr><tr><td>0070:</td><td>45</td><td>a9</td><td>46</td><td>a9</td><td>47</td><td>a9</td><td>48</td><td>a9</td><td>49</td><td>a9</td><td>4a</td><td>a9</td><td>4b</td><td>a9</td><td>4c</td><td>a9</td></tr><tr><td>0080:</td><td>4d</td><td>a9</td><td>4e</td><td>a9</td><td>4f</td><td>a9</td><td>50</td><td>a9</td><td>51</td><td>a9</td><td>52</td><td>a9</td><td>53</td><td>a9</td><td>54</td><td>a9</td></tr><tr><td>0090:</td><td>55</td><td>a9</td><td>56</td><td>a9</td><td>57</td><td>a9</td><td>58</td><td>a9</td><td>59</td><td>a9</td><td>5a</td><td>a9</td><td>5b</td><td>a9</td><td>5c</td><td>a9</td></tr><tr><td>00a0:</td><td>5d</td><td>a9</td><td>5e</td><td>a9</td><td>5f</td><td>a9</td><td>60</td><td>a9</td><td>61</td><td>a9</td><td>62</td><td>a9</td><td>63</td><td>a9</td><td>64</td><td>a9</td></tr><tr><td>00b0:</td><td>65</td><td>a9</td><td>66</td><td>a9</td><td>67</td><td>a9</td><td>68</td><td>a9</td><td>69</td><td>a9</td><td>6a</td><td>a9</td><td>6b</td><td>a9</td><td>6c</td><td>a9</td></tr><tr><td>00c0:</td><td>6d</td><td>a9</td><td>6e</td><td>a9</td><td>6f</td><td>a9</td><td>70</td><td>a9</td><td>71</td><td>a9</td><td>72</td><td>a9</td><td>73</td><td>a9</td><td>74</td><td>a9</td></tr><tr><td>00d0:</td><td>75</td><td>a9</td><td>76</td><td>a9</td><td>77</td><td>a9</td><td>78</td><td>a9</td><td>79</td><td>a9</td><td>7a</td><td>a9</td><td>7b</td><td>a9</td><td>7c</td><td>a9</td></tr><tr><td>00e0:</td><td>7d</td><td>a9</td><td>7e</td><td>a9</td><td>7f</td><td>a9</td><td>80</td><td>a9</td><td>81</td><td>a9</td><td>82</td><td>a9</td><td>83</td><td>a9</td><td>84</td><td>a9</td></tr><tr><td>00f0:</td><td>85</td><td>a9</td><td>86</td><td>a9</td><td>87</td><td>a9</td><td>88</td><td>a9</td><td>89</td><td>a9</td><td>8a</td><td>a9</td><td>8b</td><td>a9</td><td>8c</td><td>a9</td></tr><tr><td>0100:</td><td>8d</td><td>a9</td><td>8e</td><td>a9</td><td>8f</td><td>a9</td><td>90</td><td>a9</td><td>91</td><td>a9</td><td>92</td><td>a9</td><td>93</td><td>a9</td><td>94</td><td>a9</td></tr><tr><td>0110:</td><td>95</td><td>a9</td><td>96</td><td>a9</td><td>97</td><td>a9</td><td>98</td><td>a9</td><td>99</td><td>a9</td><td>9a</td><td>a9</td><td>9b</td><td>a9</td><td>9c</td><td>a9</td></tr><tr><td>0120:</td><td>9d</td><td>a9</td><td>9e</td><td>a9</td><td>9f</td><td>a9</td><td>a0</td><td>a9</td><td>a1</td><td>a9</td><td>a2</td><td>a9</td><td>a3</td><td>a9</td><td>a4</td><td>a9</td></tr><tr><td>0130:</td><td>a5</td><td>a9</td><td>a6</td><td>a9</td><td>a7</td><td>a9</td><td>a8</td><td>a9</td><td>a9</td><td>a9</td><td>aa</td><td>a9</td><td>ab</td><td>a9</td><td>ac</td><td>a9</td></tr><tr><td>0140:</td><td>ad</td><td>a9</td><td>ae</td><td>a9</td><td>af</td><td>a9</td><td>b0</td><td>a9</td><td>b1</td><td>a9</td><td>b2</td><td>a9</td><td>b3</td><td>a9</td><td>b4</td><td>a9</td></tr><tr><td>0150:</td><td>b5</td><td>a9</td><td>b6</td><td>a9</td><td>b7</td><td>a9</td><td>b8</td><td>a9</td><td>b9</td><td>a9</td><td>ba</td><td>a9</td><td>bb</td><td>a9</td><td>bc</td><td>a9</td></tr><tr><td>0160:</td><td>bd</td><td>a9</td><td>be</td><td>a9</td><td>bf</td><td>a9</td><td>c0</td><td>a9</td><td>c1</td><td>a9</td><td>c2</td><td>a9</td><td>c3</td><td>a9</td><td>c4</td><td>a9</td></tr><tr><td>0170:</td><td>c5</td><td>a9</td><td>c6</td><td>a9</td><td>c7</td><td>a9</td><td>c8</td><td>a9</td><td>c9</td><td>a9</td><td>ca</td><td>a9</td><td>cb</td><td>a9</td><td>cc</td><td>a9</td></tr><tr><td>0180:</td><td>cd</td><td>a9</td><td>ce</td><td>a9</td><td>cf</td><td>a9</td><td>d0</td><td>a9</td><td>d1</td><td>a9</td><td>d2</td><td>a9</td><td>d3</td><td>a9</td><td>d4</td><td>a9</td></tr><tr><td>0190:</td><td>d5</td><td>a9</td><td>d6</td><td>a9</td><td>d7</td><td>a9</td><td>d8</td><td>a9</td><td>d9</td><td>a9</td><td>da</td><td>a9</td><td>db</td><td>a9</td><td>dc</td><td>a9</td></tr><tr><td>01a0:</td><td>dd</td><td>a9</td><td>de</td><td>a9</td><td>df</td><td>a9</td><td>e0</td><td>a9</td><td>e1</td><td>a9</td><td>e2</td><td>a9</td><td>e3</td><td>a9</td><td>e4</td><td>a9</td></tr><tr><td>01b0:</td><td>e5</td><td>a9</td><td>e6</td><td>a9</td><td>e7</td><td>a9</td><td>e8</td><td>a9</td><td>e9</td><td>a9</td><td>ea</td><td>a9</td><td>eb</td><td>a9</td><td>ec</td><td>a9</td></tr><tr><td>01c0:</td><td>ed</td><td>a9</td><td>ee</td><td>a9</td><td>ef</td><td>a9</td><td>f0</td><td>a9</td><td>f1</td><td>a9</td><td>f2</td><td>a9</td><td>f3</td><td>a9</td><td>f4</td><td>a9</td></tr><tr><td>01d0:</td><td>f5</td><td>a9</td><td>f6</td><td>a9</td><td>f7</td><td>a9</td><td>f8</td><td>a9</td><td>f9</td><td>a9</td><td>fa</td><td>a9</td><td>fb</td><td>a9</td><td>fc</td><td>a9</td></tr><tr><td>01e0:</td><td>fd</td><td>a9</td><td>fe</td><td>a9</td><td>ff</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td></tr><tr><td>01f0:</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td></tr></table>
+   </div>
+</div><div unselectable="on" class="hsplitbar" style="z-index: 100; position: absolute; -moz-user-select: none; cursor: n-resize; top: 103px; width: 469px;"><a title="hsplitbar" tabindex="0" accesskey="" href="javascript:void(0)"></a></div> <!-- righttopdiv -->
+
+   <div style="position: absolute; z-index: 1; top: 109px; height: 442px; width: 469px;" id="tracingdiv">
+        <textarea id="consolebox">click here and type if your program handles input
+        </textarea>
+	<div style="display: block;" id="expertControlPanel" tabindex="3">
+	  <form action="javascript:updateLogList()">
+	  <input value="Trace more" onclick="updateLoglevel(++loglevel)" type="button">
+	  <input value="Trace less" onclick="updateLoglevel(--loglevel)" type="button">
+	  <input value="Trace these too:" onclick="updateLogList()" type="button">
+            <input id="LogThese" name="LogThese" type="text">
+	  <input value="Log Up/Down" onclick="updateLogDirection();" type="button">
+	  <input value="Clear Log" onclick="updateLoglevel(loglevel)" type="button">
+	  </form>
+	  <br>
+	</div>
+	<div id="logstreamscroller">
+	       <table class="logstream" id="logstream"><tbody><tr><td class="header">cycle</td><td class="header">ab</td><td class="header">db</td><td class="header">rw</td><td class="header">Fetch</td><td class="header">pc</td><td class="header">a</td><td class="header">x</td><td class="header">y</td><td class="header">s</td><td class="header">p</td><td class="header">Execute</td><td class="header">State</td></tr><tr><td class="oddcol">0</td><td>0000</td><td class="oddcol">a9</td><td>1</td><td class="oddcol">LDA&nbsp;#</td><td>0000</td><td class="oddcol">aa</td><td>00</td><td class="oddcol">00</td><td>fd</td><td class="oddcol">nv&#8209;BdIZc</td><td>BRK</td><td class="oddcol">T1</td></tr><tr><td class="oddcol">0</td><td>0000</td><td class="oddcol">a9</td><td>1</td><td class="oddcol">LDA&nbsp;#</td><td>0000</td><td class="oddcol">aa</td><td>00</td><td class="oddcol">00</td><td>fd</td><td class="oddcol">nv&#8209;BdIZc</td><td>BRK</td><td class="oddcol">T1</td></tr><tr><td class="oddrow">1</td><td class="oddrowcol">0001</td><td class="oddrow">00</td><td class="oddrowcol">1</td><td class="oddrow"></td><td class="oddrowcol">0001</td><td class="oddrow">aa</td><td class="oddrowcol">00</td><td class="oddrow">00</td><td class="oddrowcol">fd</td><td class="oddrow">nv&#8209;BdIZc</td><td class="oddrowcol">LDA&nbsp;#</td><td class="oddrow">T0+T2</td></tr><tr><td class="oddrow">1</td><td class="oddrowcol">0001</td><td class="oddrow">00</td><td class="oddrowcol">1</td><td class="oddrow"></td><td class="oddrowcol">0001</td><td class="oddrow">aa</td><td class="oddrowcol">00</td><td class="oddrow">00</td><td class="oddrowcol">fd</td><td class="oddrow">nv&#8209;BdIZc</td><td class="oddrowcol">LDA&nbsp;#</td><td class="oddrow">T0+T2</td></tr><tr><td class="oddcol">2</td><td>0002</td><td class="oddcol">ad</td><td>1</td><td class="oddcol">LDA&nbsp;Abs</td><td>0002</td><td class="oddcol">00</td><td>00</td><td class="oddcol">00</td><td>fd</td><td class="oddcol">nv&#8209;BdIZc</td><td>LDA&nbsp;#</td><td class="oddcol">T1</td></tr><tr><td class="oddcol">2</td><td>0002</td><td class="oddcol">ad</td><td>1</td><td class="oddcol">LDA&nbsp;Abs</td><td>0002</td><td class="oddcol">00</td><td>00</td><td class="oddcol">00</td><td>fd</td><td class="oddcol">nv&#8209;BdIZc</td><td>LDA&nbsp;#</td><td class="oddcol">T1</td></tr><tr><td class="oddrow">3</td><td class="oddrowcol">0003</td><td class="oddrow">12</td><td class="oddrowcol">1</td><td class="oddrow"></td><td class="oddrowcol">0003</td><td class="oddrow">00</td><td class="oddrowcol">00</td><td class="oddrow">00</td><td class="oddrowcol">fd</td><td class="oddrow">nv&#8209;BdIZc</td><td class="oddrowcol">LDA&nbsp;Abs</td><td class="oddrow">T2</td></tr></tbody></table>
+	</div>
+   </div>
+</div> <!-- closing rightcolumn -->
+</div> <!-- closing 'frame' div -->
+
+
+</body></html>
